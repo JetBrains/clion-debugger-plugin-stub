@@ -1,0 +1,39 @@
+<idea-plugin>
+  <id>com.your.company.unique.plugin.id</id>
+  <name>Plugin display name here</name>
+  <version>1.0</version>
+  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+
+  <description><![CDATA[
+      Bug Eater debugger stub plugin<br>
+      <em>STUB ONLY AT THE MOMENT</em>
+    ]]></description>
+
+  <change-notes><![CDATA[
+  First stub
+      <em>most HTML tags can be used here</em>
+    ]]>
+  </change-notes>
+
+  <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="201.0"/>
+
+  <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.clion</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <configurationType implementation="com.jetbrains.clion.bugeater.debugger.BugEaterConfigurationType"/>
+    <fileType name="BugEaterCommands" implementationClass="com.jetbrains.clion.bugeater.debugger.BugEaterFileType"
+              fieldName="INSTANCE" language="BUG-EATER" extensions="BugEaterCommandsFileTypeExtension"/>
+    <!-- Add your extensions here -->
+  </extensions>
+  <extensions defaultExtensionNs="cidr.debugger">
+    <customDebuggerProvider implementation="com.jetbrains.clion.bugeater.debugger.BugEaterDebuggerProvider"/>
+  </extensions>
+  <actions>
+    <!-- Add your actions here -->
+  </actions>
+<!--TODO provide icon-->
+</idea-plugin>
