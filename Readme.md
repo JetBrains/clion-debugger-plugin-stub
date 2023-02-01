@@ -1,6 +1,9 @@
 Minimalistic plugin with custom debugger stub
 ===
 
+[![official JetBrains project](http://jb.gg/badges/incubator.svg)](https://github.com/JetBrains#jetbrains-on-github)
+
+
 Compatibility Disclaimer
 ---
 This is an educational example, compatible with CLion 2020.1. Neither the example author nor JetBrains guarantees
