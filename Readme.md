@@ -1,7 +1,7 @@
 Minimalistic plugin with custom debugger stub
 ===
 
-[![official JetBrains project](http://jb.gg/badges/incubator.svg)](https://github.com/JetBrains#jetbrains-on-github)
+[![incubator JetBrains project](http://jb.gg/badges/incubator.svg)](https://github.com/JetBrains#jetbrains-on-github)
 
 
 Compatibility Disclaimer
