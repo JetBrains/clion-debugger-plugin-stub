@@ -3,7 +3,6 @@ package com.jetbrains.clion.bugeater.debugger;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.BaseProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.lang.Language;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -15,6 +14,7 @@ import com.jetbrains.cidr.system.HostMachine;
 import com.jetbrains.cidr.system.LocalHost;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BugEaterDriver extends DebuggerDriver {
 
     private final AtomicInteger lastId = new AtomicInteger(1);
-    private final List<LLThread> fakeThreads = Collections.singletonList(new LLThread(1));
+    private final List<LLThread> fakeThreads = Collections.singletonList(new LLThread(1, null, null, "BugEater Thread", null));
     private String fakeSrcFileName = "main.cpp";
     private int fakeSrcFileLine = 4;
     private final BaseProcessHandler<?> myProcessHandler;
@@ -45,11 +45,6 @@ public class BugEaterDriver extends DebuggerDriver {
     @Override
     public boolean supportsWatchpointLifetime() {
         return false;
-    }
-
-    @Override
-    public @NotNull Language getConsoleLanguage() {
-        return BugEaterLanguage.INSTANCE;
     }
 
     @Override
@@ -73,8 +68,7 @@ public class BugEaterDriver extends DebuggerDriver {
     }
 
     /**
-     *
-     * @param installer information about binary file to be loaded
+     * @param installer    information about binary file to be loaded
      * @param architecture target architecture, probably to be ignored
      * @return Inferior to load binary to the target platform
      * @throws ExecutionException something goes wrong
@@ -87,6 +81,21 @@ public class BugEaterDriver extends DebuggerDriver {
     }
 
     @Override
+    public @NotNull Inferior loadCoreDump(@NotNull File coreFile, @Nullable File symbolFile, @Nullable File sysroot, @NotNull List<PathMapping> sourcePathMappings) throws ExecutionException {
+        throw new ExecutionException("Not supported");
+    }
+
+    @Override
+    public @NotNull Inferior loadCoreDump(@NotNull File coreFile, @Nullable File symbolFile, @Nullable File sysroot, @NotNull List<PathMapping> sourcePathMappings, @NotNull List<String> execSearchPaths) throws ExecutionException {
+        throw new ExecutionException("Not supported");
+    }
+
+    @Override
+    public @NotNull Inferior loadForRemote(@NotNull String connectionString, @Nullable File symbolFile, @Nullable File sysroot, @NotNull List<PathMapping> pathMappings) throws ExecutionException {
+        throw new ExecutionException("Not supported");
+    }
+
+    @Override
     public @NotNull Inferior loadForAttach(int pid) throws ExecutionException {
         throw new ExecutionException("Not supported");
     }
@@ -96,19 +105,21 @@ public class BugEaterDriver extends DebuggerDriver {
         throw new ExecutionException("Attaching by name is not supported");
     }
 
-    /** User presses "Pause Program" button.
+    /**
+     * User presses "Pause Program" button.
      * {@link #handleInterrupted} supposed to be called asynchronously when actual pause happened
      */
     @Override
     public boolean interrupt() throws ExecutionException {
-        handleInterrupted(new StopPlace(new LLThread(1),
-                new LLFrame(1, "main", null, 0, 0xFF00FFL, null, false)
+        handleInterrupted(new StopPlace(fakeThreads.get(0),
+                new LLFrame(1, "main", null, null, 0, 0xFF00FFL, null, false, false, null)
         ));
         //todo
         return true;
     }
 
-    /** User presses "Resume Program" button.
+    /**
+     * User presses "Resume Program" button.
      * {@link #handleRunning} supposed to be called asynchronously when actual resume happened
      */
     @Override
@@ -120,43 +131,47 @@ public class BugEaterDriver extends DebuggerDriver {
         return true;
     }
 
-    /** User presses "Step Over" button.
+    /**
+     * User presses "Step Over" button.
      * {@link #handleRunning} supposed to be called asynchronously when actual resume happened
      * {@link #handleInterrupted} supposed to be called asynchronously when pause after the step happened
      */
     @Override
-    public void stepOver(@Nullable Boolean stepByInstruction) throws ExecutionException {
+    public void stepOver(boolean stepByInstruction) throws ExecutionException {
         handleRunning();
         fakeSrcFileLine = (fakeSrcFileLine + 1) % 6;
-        handleInterrupted(new StopPlace(new LLThread(1),
-                new LLFrame(1, "main", fakeSrcFileName, fakeSrcFileLine, 0xFF00FFL, null, false))
-        );
+        handleInterrupted(new StopPlace(fakeThreads.get(0),
+                new LLFrame(1, "main", fakeSrcFileName, null, fakeSrcFileLine, 0xFF00FFL, null, false, false, null)
+        ));
         //todo
     }
 
-    /** Step over
-     * @see #stepOver
+    /**
+     * Step over
      *
+     * @see #stepOver
      */
     @Override
-    public void stepInto(boolean forceStepIntoFramesWithNoDebugInfo, @Nullable Boolean stepByInstruction) throws ExecutionException {
+    public void stepInto(boolean forceStepIntoFramesWithNoDebugInfo, boolean stepByInstruction) throws ExecutionException {
         stepOver(stepByInstruction);
         //todo
     }
 
-    /** Step out
-     * @see #stepOver
+    /**
+     * Step out
      *
+     * @see #stepOver
      */
     @Override
-    public void stepOut() throws ExecutionException {
+    public void stepOut(boolean stopInFramesWithNoDebugInfo) throws ExecutionException {
         stepOver(false);
         //todo
     }
 
-    /** Run to source file line
-     * @see #stepOver
+    /**
+     * Run to source file line
      *
+     * @see #stepOver
      */
     @Override
     public void runTo(@NotNull String path, int line) throws ExecutionException {
@@ -164,9 +179,10 @@ public class BugEaterDriver extends DebuggerDriver {
         //todo
     }
 
-    /** Run to PC address
-     * @see #stepOver
+    /**
+     * Run to PC address
      *
+     * @see #stepOver
      */
     @Override
     public void runTo(@NotNull Address address) throws ExecutionException {
@@ -174,9 +190,10 @@ public class BugEaterDriver extends DebuggerDriver {
         //todo
     }
 
-    /** Perform debugger exit
-     * @see #stepOver
+    /**
+     * Perform debugger exit
      *
+     * @see #stepOver
      */
     @Override
     protected boolean doExit() throws ExecutionException {
@@ -186,12 +203,43 @@ public class BugEaterDriver extends DebuggerDriver {
         return true;
     }
 
-    /** Autocomplete support for debugger console
-     *
+    /**
+     *  "Jump" to support
+     */
+    @NotNull
+    @Override
+    public StopPlace jumpToLine(@NotNull LLThread thread, @NotNull String path, int line, boolean canLeaveFunction) throws ExecutionException, DebuggerCommandException {
+        throw new DebuggerCommandException(String.format("Can't resolve address for line %s:%d", path, line));
+        //todo
+    }
+
+    /**
+     *  "Jump" to support
+     */
+    @NotNull
+    @Override
+    public StopPlace jumpToAddress(@NotNull LLThread thread, @NotNull Address address, boolean canLeaveFunction) throws ExecutionException, DebuggerCommandException {
+        throw new DebuggerCommandException(String.format("Can't jump to address %s", address));
+        //todo
+    }
+
+    @Override
+    public void addPathMapping(int index, @NotNull String from, @NotNull String to) throws ExecutionException {
+        // todo
+    }
+
+    @Override
+    public void addForcedFileMapping(int index, @NotNull String from, @Nullable DebuggerSourceFileHash hash, @NotNull String to) throws ExecutionException {
+        addPathMapping(index,from,to);
+    }
+
+    /**
+     * Autocomplete support for debugger console
      */
     @Override
     public @NotNull ResultList<String> completeConsoleCommand(@NotNull String command, int pos) throws ExecutionException {
         return new ResultList<>(Collections.emptyList(), false);
+        //todo
     }
 
     /**
@@ -200,10 +248,10 @@ public class BugEaterDriver extends DebuggerDriver {
     @Override
     public @NotNull LLWatchpoint addWatchpoint(long threadId,
                                                int frameIndex,
-                                               LLValue value,
-                                               String expr,
+                                               @NotNull LLValue value,
+                                               @NotNull String expr,
                                                LLWatchpoint.Lifetime lifetime,
-                                               LLWatchpoint.AccessType accessType) throws ExecutionException, DebuggerCommandException {
+                                               @NotNull LLWatchpoint.AccessType accessType) throws ExecutionException, DebuggerCommandException {
         //todo
         return new LLWatchpoint(lastId.incrementAndGet(), expr);
     }
@@ -212,21 +260,26 @@ public class BugEaterDriver extends DebuggerDriver {
      * Watchpoint handling
      */
     @Override
-    public void removeWatchpoint(List<Integer> ids) throws ExecutionException, DebuggerCommandException {
-
+    public void removeWatchpoint(@NotNull List<Integer> ids) throws ExecutionException, DebuggerCommandException {
+        //todo
     }
 
     /** User adds a breakpoint
      * {@link #handleBreakpointAdded} supposed to be called asynchronously when done
      */
+    @NotNull
     @Override
-    public @NotNull LLBreakpoint addBreakpoint(String path, int line, @Nullable String condition)
-            throws ExecutionException, DebuggerCommandException {
+    public AddBreakpointResult addBreakpoint(@NotNull String path, int line, @Nullable String condition, boolean ignoreSourceHash) throws ExecutionException, DebuggerCommandException {
         //todo
-        return new LLBreakpoint(lastId.incrementAndGet(), path, line, condition, null);
+        LLBreakpoint breakpoint = new LLBreakpoint(lastId.incrementAndGet(), path, line, condition);
+
+        LLBreakpointLocation location = new LLBreakpointLocation(path + "#" + line, Address.fromUnsignedLong(line * 256L),
+                new FileLocation(path, line));
+        return new AddBreakpointResult(breakpoint, Collections.singletonList(location));
     }
 
-    /** User adds a symbolic breakpoint
+    /**
+     * User adds a symbolic breakpoint
      */
     @Override
     public @Nullable LLSymbolicBreakpoint addSymbolicBreakpoint(@NotNull SymbolicBreakpoint symBreakpoint)
@@ -235,15 +288,27 @@ public class BugEaterDriver extends DebuggerDriver {
         return new LLSymbolicBreakpoint(lastId.incrementAndGet());
     }
 
-    /** User removes symbolic or line breakpoint
-     * {@link #handleBreakpointRemoved(LLBreakpoint)} supposed to be called asynchronously when done
+    /**
+     * User adds an address breakpoint
+     */
+    @NotNull
+    @Override
+    public AddBreakpointResult addAddressBreakpoint(@NotNull Address address, @Nullable String condition) throws ExecutionException, DebuggerCommandException {
+        throw new DebuggerCommandException(String.format("Can't set a breakpoint at %s", address));
+        //todo
+    }
+
+    /**
+     * User removes symbolic or line breakpoint
+     * {@link #handleBreakpointRemoved(int)} supposed to be called asynchronously when done
      */
     @Override
     public void removeCodepoints(@NotNull Collection<Integer> ids) throws ExecutionException, DebuggerCommandException {
         //todo
     }
 
-    /** List of threads. For instance, RTOS tasks
+    /**
+     * List of threads. For instance, RTOS tasks
      */
     @Override
     public @NotNull List<LLThread> getThreads() throws ExecutionException, DebuggerCommandException {
@@ -251,25 +316,34 @@ public class BugEaterDriver extends DebuggerDriver {
         return fakeThreads;
     }
 
-    /** Stack trace for a thread
+    @Override
+    public void cancelSymbolsDownload(@NotNull String details) throws ExecutionException, DebuggerCommandException {
+        // Optional
+    }
+
+    /**
+     * Stack trace for a thread
      */
     @Override
-    public @NotNull ResultList<LLFrame> getFrames(long threadId, int from, int count, boolean untilFirstLineWithCode)
+    public @NotNull ResultList<LLFrame> getFrames(@NotNull LLThread thread, int from, int count, boolean untilFirstLineWithCode)
             throws ExecutionException, DebuggerCommandException {
         //todo
         return new ResultList<>(Collections.singletonList(
-                new LLFrame(1, "main", fakeSrcFileName, fakeSrcFileLine, 0xFF00FFL, null, false)
+                new LLFrame(1, "main", null, null, 0, 0xFF00FFL, null, false, false, null)
         ), false);
     }
 
-    /** List of available variables
+    /**
+     * List of available variables
      */
     @Override
     public @NotNull List<LLValue> getVariables(long threadId, int frameIndex) throws ExecutionException, DebuggerCommandException {
-        return Collections.singletonList(new LLValue("foo", "char*", null, "foo"));
+        return Collections.singletonList(new LLValue("foo", "char*", null, null, "foo"));
+        //todo
     }
 
-    /** Read value of a variable
+    /**
+     * Read value of a variable
      */
     @Override
     public @NotNull LLValueData getData(@NotNull LLValue value) throws ExecutionException, DebuggerCommandException {
@@ -277,7 +351,8 @@ public class BugEaterDriver extends DebuggerDriver {
         return new LLValueData("foo".equals(value.getName()) ? "\"bar\"" : "<->", null, false, false, false);
     }
 
-    /** Read description of a variable
+    /**
+     * Read description of a variable
      */
     @Override
     public @Nullable String getDescription(@NotNull LLValue value, int maxLength) throws ExecutionException, DebuggerCommandException {
@@ -285,7 +360,8 @@ public class BugEaterDriver extends DebuggerDriver {
         return null;
     }
 
-    /** Unions, structures, or classes are hierarchical. This method help to obtain the hierarchy
+    /**
+     * Unions, structures, or classes are hierarchical. This method help to obtain the hierarchy
      */
     @Override
     public @Nullable Integer getChildrenCount(@NotNull LLValue value) throws ExecutionException, DebuggerCommandException {
@@ -293,25 +369,27 @@ public class BugEaterDriver extends DebuggerDriver {
         return null;
     }
 
-    /** Unions, structures, or classes are hierarchical. This method help to obtain the hierarchy
+    /**
+     * Unions, structures, or classes are hierarchical. This method help to obtain the hierarchy
      */
     @Override
-    public @NotNull ResultList<LLValue> getVariableChildren(LLValue value, int from, int count)
+    public @NotNull ResultList<LLValue> getVariableChildren(@NotNull LLValue value, int from, int count)
             throws ExecutionException, DebuggerCommandException {
         //todo
         throw new DebuggerCommandException("Not implemented");
     }
 
-    /** Expression evaluation
+    /**
+     * Expression evaluation
      */
     @Override
     public @NotNull LLValue evaluate(long threadId, int frameIndex, @NotNull String expression, @Nullable DebuggerLanguage language)
             throws ExecutionException, DebuggerCommandException {
         //todo
-        if (expression.equals(new LLValue("foo", "char*", null, "foo").getName())) {
-            return new LLValue("foo", "char*", null, "foo");
+        if (expression.equals(new LLValue("foo", "char*", null, null, "foo").getName())) {
+            return new LLValue("foo", "char*", null, null, "foo");
         } else {
-            return new LLValue("<unknown>", "<unknown>", null, "<unknown>");
+            return new LLValue("<unknown>", "<unknown>", null, null, "<unknown>");
         }
     }
 
@@ -319,10 +397,12 @@ public class BugEaterDriver extends DebuggerDriver {
     public @NotNull List<LLInstruction> disassembleFunction(@NotNull Address address, @NotNull AddressRange fallbackRange)
             throws ExecutionException, DebuggerCommandException {
         //todo
+        List<Byte> NOP = Arrays.asList((byte) 0x55, (byte) 0x66);
+        List<Byte> RET = Arrays.asList((byte) 0xAA, (byte) 0xBB);
         return
                 Arrays.asList(
-                        LLInstruction.create(address, "55", "FAKE.NOP", "No-op", null),
-                        LLInstruction.create(address.plus(1), "AA", "FAKE.RET", "Return", null)
+                        LLInstruction.create(address, NOP, "FAKE.NOP", "No-op", null),
+                        LLInstruction.create(address.plus(1), RET, "FAKE.RET", "Return", null)
                 );
 
     }
@@ -360,17 +440,20 @@ public class BugEaterDriver extends DebuggerDriver {
     }
 
     @Override
-    public void executeConsoleCommand(String command) throws ExecutionException, DebuggerCommandException {
-        executeConsoleCommand(-1, -1, command);
+    @TestOnly
+    public @NotNull String executeInterpreterCommand(@NotNull String command) throws ExecutionException, DebuggerCommandException {
+        return executeInterpreterCommand(-1, -1, command);
     }
 
     @Override
-    public void executeConsoleCommand(long threadId, int frameIndex, String text) throws ExecutionException, DebuggerCommandException {
+    public @NotNull String executeInterpreterCommand(long threadId, int frameIndex, @NotNull String text) throws ExecutionException, DebuggerCommandException {
+        //todo
         // not supported?
+        return "OK";
     }
 
     @Override
-    public void handleSignal(String signalName, boolean stop, boolean pass, boolean notify)
+    public void handleSignal(@NotNull String signalName, boolean stop, boolean pass, boolean notify)
             throws ExecutionException, DebuggerCommandException {
         //todo
     }
@@ -380,7 +463,8 @@ public class BugEaterDriver extends DebuggerDriver {
         return "bug-eater";
     }
 
-    /** Verify if driver is in OK state
+    /**
+     * Verify if driver is in OK state
      *
      * @throws ExecutionException if something is wrong
      */
@@ -389,11 +473,11 @@ public class BugEaterDriver extends DebuggerDriver {
         //todo
     }
 
-    /** Load compiled binary with debug information into debugger engine(but not into target platform)
-     *
+    /**
+     * Load compiled binary with debug information into debugger engine(but not into target platform)
      */
     @Override
-    public void addSymbolsFile(File file, File module) throws ExecutionException {
+    public void addSymbolsFile(@NotNull File file, File module) throws ExecutionException {
         //todo
     }
 
@@ -401,7 +485,7 @@ public class BugEaterDriver extends DebuggerDriver {
 
         private FakeInferior(@Nullable Project project) {
             super(com.jetbrains.clion.bugeater.debugger.BugEaterDriver.this.lastId.incrementAndGet());
-            if (project!=null && project.getBasePath() != null) {
+            if (project != null && project.getBasePath() != null) {
                 fakeSrcFileName = Paths.get(project.getBasePath(), "main.cpp").toString();
             }
         }
