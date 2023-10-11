@@ -3,7 +3,7 @@ Minimalistic plugin with custom debugger stub
 
 Compatibility Disclaimer
 ---
-This is an educational example, compatible with CLion 2020.1. Neither the example author nor JetBrains guarantees
+This is an educational example, compatible with CLion 2023.2. Neither the example author nor JetBrains guarantees
 compatibility with upcoming versions.
 
 HOW2USE
