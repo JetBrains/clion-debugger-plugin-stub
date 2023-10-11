@@ -12,21 +12,19 @@ HOW2USE
  - Follow the steps described at [Develop plugins for CLion](https://www.jetbrains.com/help/clion/develop-plugins-for-clion.html).
  - Open the project and click *Debug Plugin*. This will start CLion with the plugin installed.
  - In CLion:
-   - Create a project of type "C++ Executable".
+   - Create a project of type *C++ Executable*.
    - Configure the toolchain as described [here](https://www.jetbrains.com/help/clion/quick-tutorial-on-configuring-clion-on-windows.html).
-   - Click the **Debug** button.
-   - A fake debugger will be started.
-
-Now all the features of IntelliJ IDEA may be used to develop the plugin functionality.
-
-Fake functionality implemented
+   - Create a Run Configuration of type *Debugger-Stub*
+ 
+Functionality Testing
 ---
-- Starting the debugger
-- Stopping the debugger
-- Fake "foo" variable holding "bar" value
-- Interrupt/resume execution
-- Execution stepping over a *main.cpp* source file
-- Fake disassembly
+ - Start the debugger: Click the *Debug* button
+ - Pausing the debugger and disassembly: Click *Pause Program* button
+The execution is interrupted and fake disassembly is shown
+ - Execution stepping: Click *Step Over* button several times
+ - Variables access: Evaluate *foo* expression. A string value *bar* is shown 
+ - Resume execution: Click *Resume program* button
+ - Stop the debugger: Click the *Stop* button
 
 Implementation details
 ---
