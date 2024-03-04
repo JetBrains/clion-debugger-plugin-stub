@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.10"
-    id("org.jetbrains.intellij") version "1.16.0"
+    id("org.jetbrains.kotlin.jvm") version "1.9.22"
+    id("org.jetbrains.intellij") version "1.17.2"
 }
 
 group "com.your.company.unique.plugin.id"
@@ -19,7 +19,7 @@ dependencies {
 
 intellij {
     plugins.set(listOf("com.intellij.clion", "com.intellij.cidr.lang","com.intellij.cidr.base", "com.intellij.nativeDebug"))
-    version.set("2023.2")
+    version.set("2023.3")
     type.set("CL")
 }
 
@@ -49,7 +49,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("232")
-        untilBuild.set("232.*")
+        sinceBuild.set("233")
+        untilBuild.set("233.*")
     }
 }

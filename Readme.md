@@ -6,7 +6,7 @@ Minimalistic plugin with custom debugger stub
 
 Compatibility Disclaimer
 ---
-This is an educational example, compatible with CLion 2023.2. Neither the example author nor JetBrains guarantees
+This is an educational example, compatible with CLion 2023.3. Neither the example author nor JetBrains guarantees
 compatibility with upcoming versions.
 
 HOW2USE
@@ -23,7 +23,7 @@ Functionality Testing
 ---
  - Start the debugger: Click the *Debug* button
  - Pausing the debugger and disassembly: Click *Pause Program* button
-The execution is interrupted and fake disassembly is shown
+The execution is interrupted, and fake disassembly is shown
  - Execution stepping: Click *Step Over* button several times
  - Variables access: Evaluate *foo* expression. A string value *bar* is shown 
  - Resume execution: Click *Resume program* button
