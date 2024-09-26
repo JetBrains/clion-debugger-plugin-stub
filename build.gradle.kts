@@ -1,27 +1,30 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.22"
-    id("org.jetbrains.intellij") version "1.17.2"
+    kotlin("jvm") version "2.0.20"
+    id("org.jetbrains.intellij.platform") version "2.0.1"
+}
+apply {
+    plugin("kotlin")
 }
 
-group "com.your.company.unique.plugin.id"
-version "1.0"
-
 repositories {
-    mavenCentral()
+    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+    maven("https://cache-redirector.jetbrains.com/maven-central")
+    intellijPlatform {
+        defaultRepositories()
+        jetbrainsRuntime()
+    }
 }
 
 dependencies {
-//    implementation(libs.annotations)
+    intellijPlatform {
+        clion("2024.2")
+        jetbrainsRuntime()
+        instrumentationTools()
+        bundledPlugins("com.intellij.clion", "com.intellij.cidr.lang","com.intellij.cidr.base", "com.intellij.nativeDebug")
+    }
 }
 
-intellij {
-    plugins.set(listOf("com.intellij.clion", "com.intellij.cidr.lang","com.intellij.cidr.base", "com.intellij.nativeDebug"))
-    version.set("2023.3")
-    type.set("CL")
-}
 
 sourceSets {
     main {
@@ -43,13 +46,8 @@ tasks {
         targetCompatibility = "17"
     }
 
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
-        kotlinOptions.apiVersion = "1.9"
-    }
-
     patchPluginXml {
-        sinceBuild.set("233")
-        untilBuild.set("233.*")
+        sinceBuild.set("242")
+        untilBuild.set("242.*")
     }
 }
