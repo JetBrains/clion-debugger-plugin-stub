@@ -1,7 +1,7 @@
 plugins {
     id("java")
-    kotlin("jvm") version "2.0.20"
-    id("org.jetbrains.intellij.platform") version "2.0.1"
+    kotlin("jvm") version "2.0.21"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
 }
 apply {
     plugin("kotlin")
@@ -13,12 +13,13 @@ repositories {
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
+        snapshots()
     }
 }
 
 dependencies {
     intellijPlatform {
-        clion("2024.2")
+        clion("243.21565.87")
         jetbrainsRuntime()
         instrumentationTools()
         bundledPlugins("com.intellij.clion", "com.intellij.cidr.lang","com.intellij.cidr.base", "com.intellij.nativeDebug")
@@ -42,12 +43,12 @@ sourceSets {
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
     }
 
     patchPluginXml {
-        sinceBuild.set("242")
-        untilBuild.set("242.*")
+        sinceBuild.set("243")
+        untilBuild.set("243.*")
     }
 }
