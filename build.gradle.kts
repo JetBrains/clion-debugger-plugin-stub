@@ -1,28 +1,29 @@
+
 plugins {
     id("java")
-    kotlin("jvm") version "2.0.21"
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.kotlin.jvm") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.6.0"
 }
-apply {
-    plugin("kotlin")
+
+kotlin {
+    jvmToolchain(21)
 }
 
 repositories {
-    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
-    maven("https://cache-redirector.jetbrains.com/maven-central")
+    mavenCentral()
+
+    // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
-        jetbrainsRuntime()
-        snapshots()
     }
 }
 
 dependencies {
     intellijPlatform {
-        clion("243.21565.87")
+        clion("252.23892.173")
         jetbrainsRuntime()
-        instrumentationTools()
-        bundledPlugins("com.intellij.clion", "com.intellij.cidr.lang","com.intellij.cidr.base", "com.intellij.nativeDebug")
+        bundledPlugins("com.intellij.clion",
+            "com.intellij.clion.cmake")
     }
 }
 
@@ -48,7 +49,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("243")
-        untilBuild.set("243.*")
+        sinceBuild.set("252")
+        untilBuild.set("252.*")
     }
 }
